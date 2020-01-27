@@ -6,7 +6,7 @@
 """
 from pymongo import MongoClient
 
-client = MongoClient('**Confidential**')
+client = MongoClient('mongodb://localhost:27017/')
 db = client['2019-nCov']
 
 

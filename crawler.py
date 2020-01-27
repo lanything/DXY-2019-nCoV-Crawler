@@ -34,18 +34,26 @@ class Crawler:
 
     def run(self):
         while True:
-            self.crawler()
-            time.sleep(60)
+            try:
+                self.crawler()
+                time.sleep(60 * 30)
+            except Exception as e:
+                print(e)
 
     def crawler(self):
         while True:
-            self.crawl_timestamp = int(datetime.datetime.timestamp(datetime.datetime.now()) * 1000)
+            self.crawl_timestamp = int(
+                datetime.datetime.timestamp(datetime.datetime.now()) * 1000)
             r = self.session.get(url=self.url)
             soup = BeautifulSoup(r.content, 'lxml')
-            overall_information = re.search(r'\{("id".*?)\}', str(soup.find('script', attrs={'id': 'getStatisticsService'})))
-            province_information = re.search(r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getListByCountryTypeService1'})))
-            area_information = re.search(r'\[(.*)\]', str(soup.find('script', attrs={'id': 'getAreaStat'})))
-            news = re.search(r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getTimelineService'})))
+            overall_information = re.search(
+                r'\{("id".*?)\}', str(soup.find('script', attrs={'id': 'getStatisticsService'})))
+            province_information = re.search(
+                r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getListByCountryTypeService1'})))
+            area_information = re.search(
+                r'\[(.*)\]', str(soup.find('script', attrs={'id': 'getAreaStat'})))
+            news = re.search(
+                r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getTimelineService'})))
 
             if not overall_information or not province_information or not area_information or not news:
                 continue
@@ -66,10 +74,12 @@ class Crawler:
         overall_information.pop('modifyTime')
         overall_information.pop('imgUrl')
         overall_information.pop('deleted')
-        overall_information['countRemark'] = overall_information['countRemark'].replace(' 疑似', '，疑似').replace(' 治愈', '，治愈').replace(' 死亡', '，死亡').replace(' ', '')
+        overall_information['countRemark'] = overall_information['countRemark'].replace(
+            ' 疑似', '，疑似').replace(' 治愈', '，治愈').replace(' 死亡', '，死亡').replace(' ', '')
         if not self.db.find_one(collection='DXYOverall', data=overall_information):
             overall_information['updateTime'] = self.crawl_timestamp
-            overall_information = regex_parser(content=overall_information, key='countRemark')
+            overall_information = regex_parser(
+                content=overall_information, key='countRemark')
 
             self.db.insert(collection='DXYOverall', data=overall_information)
 
